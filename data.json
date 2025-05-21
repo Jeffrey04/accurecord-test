@@ -1,0 +1,32 @@
+[
+  {
+    "claim_id": "CLAIM001",
+    "patient_id": "PAT001",
+    "charge_amount": 2750.75,
+    "cpt_code": "99233"
+  },
+  {
+    "claim_id": "CLAIM002",
+    "patient_id": "PAT002",
+    "charge_amount": 1300.00,
+    "cpt_code": "99214"
+  },
+  {
+    "claim_id": "CLAIM003",
+    "patient_id": "PAT001",
+    "charge_amount": 450.25,
+    "cpt_code": "99211"
+  },
+  {
+    "claim_id": "CLAIM004",
+    "patient_id": "PAT003",
+    "charge_amount": 3800.00,
+    "cpt_code": "99223"
+  },
+  {
+    "claim_id": "CLAIM005",
+    "patient_id": "PAT004",
+    "charge_amount": 900.00,
+    "cpt_code": "99212"
+  }
+]
