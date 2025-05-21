@@ -1,0 +1,6 @@
+services:
+  backend:
+    image: 'ghcr.io/jeffrey04/accurecord-test-backend:main'
+    ports:
+      - "0.0.0.0:8080:8080"
+

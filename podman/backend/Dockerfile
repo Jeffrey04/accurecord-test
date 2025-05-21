@@ -5,20 +5,19 @@ WORKDIR /app
 COPY . .
 
 RUN apt-get update && apt-get install -y sqlite3 && \
-    uv sync --frozen --no-editable --no-dev --compile-bytecode && \
-    # distroless's cpython is in /usr/bin/python
-    #rm /app/.venv/bin/python && \
-    #ln -s /usr/bin/python /app/.venv/bin/python && \
-    touch database.sqlite && \
-    sqlite3 database.sqlite < database/schema.sql
+    uv sync --frozen --no-editable --no-dev --compile-bytecode
 
-EXPOSE 8081/tcp
+# distroless's cpython is in /usr/bin/python
+#rm /app/.venv/bin/python && \
+#ln -s /usr/bin/python /app/.venv/bin/python && \
+
+EXPOSE 8080/tcp
 
 ENTRYPOINT ["/app/.venv/bin/accurecord-test"]
 
 #FROM gcr.io/distroless/python3-debian12:debug
 #
-#EXPOSE 8081/tcp
+#EXPOSE 8080/tcp
 #
 #COPY --from=builder /app/.venv /app/.venv
 #COPY --from=builder /app/database.sqlite /app/database.sqlite
