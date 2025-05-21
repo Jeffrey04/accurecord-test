@@ -4,10 +4,13 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 COPY . .
 
-RUN uv sync --frozen --no-editable --no-dev --compile-bytecode && \
+RUN apt-get update && apt-get install -y sqlite3 && \
+    uv sync --frozen --no-editable --no-dev --compile-bytecode && \
     # distroless's cpython is in /usr/bin/python
     rm /app/.venv/bin/python && \
-    ln -s /usr/bin/python /app/.venv/bin/python
+    ln -s /usr/bin/python /app/.venv/bin/python && \
+    touch database.sqlite && \
+    sqlite3 database.sqlite < database/schema.sql
 
 FROM gcr.io/distroless/python3-debian12
 
