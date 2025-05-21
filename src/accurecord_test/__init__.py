@@ -1,6 +1,5 @@
 import asyncio
 import signal
-import threading
 from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass
 from multiprocessing import Manager

@@ -1,5 +1,4 @@
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 
 import aiosqlite
 

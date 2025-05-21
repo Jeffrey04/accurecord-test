@@ -1,6 +1,5 @@
 import asyncio
 import queue
-from contextlib import suppress
 from threading import Event
 from typing import Any
 
