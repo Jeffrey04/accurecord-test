@@ -30,8 +30,7 @@ async def message_consume(conn: aiosqlite.Connection, logger: Any) -> None:
 
             await process_payload(conn, payload, logger)
     except asyncio.CancelledError:
-        logger.info("Exiting")
-        pass
+        logger.info("Queue consumption exiting")
 
 
 async def process_payload(

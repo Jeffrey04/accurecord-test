@@ -7,7 +7,10 @@ from accurecord_test import settings
 
 
 async def connect() -> aiosqlite.Connection:
-    conn = await aiosqlite.connect(settings.DB_PATH, check_same_thread=False)
+    conn = aiosqlite.connect(settings.DB_PATH, check_same_thread=False)
+    # FIXME workaround https://github.com/omnilib/aiosqlite/issues/290#issuecomment-2578942071
+    conn.daemon = True
+    conn = await conn
     await conn.execute("pragma journal_mode=wal")
 
     return conn

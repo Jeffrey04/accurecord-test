@@ -1,12 +1,12 @@
 import asyncio
 import json
-import multiprocessing
 from operator import itemgetter
 
 import aiosqlite
 import pytest
 import pytest_asyncio
 
+from accurecord_test import settings
 from accurecord_test.background import calculate_risk_score, message_consume
 from accurecord_test.common import get_logger
 from accurecord_test.web import ChargeIncoming, Job
@@ -14,7 +14,9 @@ from accurecord_test.web import ChargeIncoming, Job
 
 @pytest_asyncio.fixture(name="connection")
 async def db_fixture():
-    conn = await aiosqlite.connect(":memory:")
+    conn = aiosqlite.connect(":memory:")
+    conn.daemon = True
+    conn = await conn
 
     with open("./database/schema.sql") as f:
         await conn.executescript(f.read())  # type: ignore
@@ -27,7 +29,6 @@ async def db_fixture():
 @pytest.mark.asyncio
 async def test_message_consume(
     connection: aiosqlite.Connection,
-    session_multiprocessing_queue: multiprocessing.Queue,
 ):
     async with connection.cursor() as cursor:
         cursor.row_factory = aiosqlite.Row
@@ -47,7 +48,7 @@ async def test_message_consume(
         with open("./data.json") as f:
             charges = sorted(json.load(f), key=itemgetter("claim_id"))
 
-            session_multiprocessing_queue.put(
+            settings.incoming_queue.put(
                 {
                     "job": Job(job["job_id"], bool(job["is_done"])),
                     "data": [

@@ -1,5 +1,4 @@
 import json
-import multiprocessing
 
 import aiosqlite
 import pytest
@@ -13,7 +12,9 @@ from accurecord_test.web import app
 
 @pytest_asyncio.fixture(name="connection")
 async def db_fixture():
-    conn = await aiosqlite.connect(":memory:")
+    conn = aiosqlite.connect(":memory:")
+    conn.daemon = True
+    conn = await conn
 
     with open("./database/schema.sql") as f:
         await conn.executescript(f.read())  # type: ignore
@@ -42,7 +43,6 @@ def client_fixture(connection: aiosqlite.Connection):
 @pytest.mark.asyncio
 async def test_create_job(
     client: TestClient,
-    session_multiprocessing_queue: multiprocessing.Queue,
     connection: aiosqlite.Connection,
 ):
     with open("./data.json") as f:
@@ -67,7 +67,7 @@ async def test_create_job(
     assert result[1] == data["is_done"]
 
     # check if the job is sent to the queue
-    payload = session_multiprocessing_queue.get()
+    payload = settings.incoming_queue.get()
 
     assert data["job_id"] == payload["job"].job_id
     assert data["is_done"] == payload["job"].is_done
@@ -79,9 +79,7 @@ async def test_create_job(
         assert charge["cpt_code"] == payload["data"][idx].cpt_code
 
 
-def test_check_job(
-    client: TestClient, session_multiprocessing_queue: multiprocessing.Queue
-):
+def test_check_job(client: TestClient):
     response = client.get("/charges/job/1")
 
     # should return 404 as no record is in the database
@@ -104,7 +102,6 @@ def test_check_job(
 @pytest.mark.asyncio
 async def test_check_charge(
     client: TestClient,
-    session_multiprocessing_queue: multiprocessing.Queue,
     connection: aiosqlite.Connection,
 ):
     response = client.get("/charges/CLAIM010")

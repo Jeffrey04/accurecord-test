@@ -1,5 +1,6 @@
 import asyncio
 import signal
+import threading
 from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass
 from multiprocessing import Manager
@@ -7,6 +8,7 @@ from threading import Event
 from types import FrameType
 from typing import Any, Callable
 
+from accurecord_test import settings
 from accurecord_test.background import run as background_run
 from accurecord_test.common import get_logger
 from accurecord_test.web import run as web_run
