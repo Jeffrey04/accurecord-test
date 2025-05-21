@@ -17,5 +17,6 @@ FROM gcr.io/distroless/python3-debian12
 EXPOSE 8081/tcp
 
 COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/database.sqlite /app/database.sqlite
 
 ENTRYPOINT ["/app/.venv/bin/accurecord-test"]
