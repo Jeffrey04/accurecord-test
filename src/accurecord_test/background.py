@@ -81,7 +81,7 @@ async def run(exit_event: Event):
     logger = get_logger(__name__)
 
     logger.info("BG: Starting up")
-    conn = database.connect()
+    conn = await database.connect()
 
     logger.info("BG: Ready for requests")
     task = asyncio.create_task(message_consume(conn, logger))
