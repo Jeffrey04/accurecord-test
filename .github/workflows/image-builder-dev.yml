@@ -16,7 +16,5 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get install -y podman
       - run: echo ${{ secrets.GITHUB_TOKEN }} | podman login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-      - run: podman build --tag "ghcr.io/$OWNER_LC/basku-backend:$BRANCH_NAME" -f ./docker/backend/Dockerfile .
-      - run: podman build --tag "ghcr.io/$OWNER_LC/basku-frontend:$BRANCH_NAME" -f ./docker/frontend/Dockerfile .
-      - run: podman push "ghcr.io/$OWNER_LC/basku-backend:$BRANCH_NAME"
-      - run: podman push "ghcr.io/$OWNER_LC/basku-frontend:$BRANCH_NAME"
+      - run: podman build --tag "ghcr.io/$OWNER_LC/accurecord-test-backend:$BRANCH_NAME" -f ./podman/backend/Dockerfile .
+      - run: podman push "ghcr.io/$OWNER_LC/accurecord-test-backend:$BRANCH_NAME"
