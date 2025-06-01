@@ -42,5 +42,5 @@ sqlite3 database.sqlite < database/schema.sql
 ## Running test
 
 ```
-make test
+uv run pytest
 ```

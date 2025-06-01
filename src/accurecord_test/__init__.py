@@ -7,7 +7,6 @@ from threading import Event
 from types import FrameType
 from typing import Any, Callable
 
-from accurecord_test import settings
 from accurecord_test.background import run as background_run
 from accurecord_test.common import get_logger
 from accurecord_test.web import run as web_run
@@ -72,10 +71,18 @@ def main() -> None:
     logger = get_logger(__name__)
     pmanager = Manager()
     exit_event = pmanager.Event()
+    batch_queue = pmanager.Queue()
 
     with ProcessPoolExecutor() as executor:
         for signal_num in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
             signal.signal(signal_num, ShutdownHandler(exit_event, logger))
 
-        task_submit(executor, exit_event, "web", web_run, logger=logger)
-        task_submit(executor, exit_event, "background", background_run, logger=logger)
+        task_submit(executor, exit_event, "web", web_run, batch_queue, logger=logger)
+        task_submit(
+            executor,
+            exit_event,
+            "background",
+            background_run,
+            batch_queue,
+            logger=logger,
+        )

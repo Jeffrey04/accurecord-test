@@ -14,13 +14,15 @@ def calculate_risk_score(amount: float) -> float:
     return round(amount / 1000, 2)
 
 
-async def message_consume(conn: aiosqlite.Connection, logger: Any) -> None:
+async def message_consume(
+    conn: aiosqlite.Connection, batch_queue: queue.Queue, logger: Any
+) -> None:
     try:
         while True:
             try:
                 # NOTE: Setting timeout is crucial to allow application to shutdown gracefully
                 payload = await asyncio.to_thread(
-                    settings.incoming_queue.get, timeout=settings.QUEUE_TIMEOUT
+                    batch_queue.get, timeout=settings.QUEUE_TIMEOUT
                 )
             except queue.Empty:
                 continue
@@ -75,14 +77,14 @@ async def process_payload(
     await conn.commit()
 
 
-async def run(exit_event: Event):
+async def run(exit_event: Event, batch_queue: queue.Queue):
     logger = get_logger(__name__)
 
     logger.info("BG: Starting up")
     conn = await database.connect()
 
     logger.info("BG: Ready for requests")
-    task = asyncio.create_task(message_consume(conn, logger))
+    task = asyncio.create_task(message_consume(conn, batch_queue, logger))
 
     await asyncio.to_thread(exit_event.wait)
 

@@ -1,12 +1,12 @@
 import asyncio
 import json
+import multiprocessing
 from operator import itemgetter
 
 import aiosqlite
 import pytest
 import pytest_asyncio
 
-from accurecord_test import settings
 from accurecord_test.background import calculate_risk_score, message_consume
 from accurecord_test.common import get_logger
 from accurecord_test.web import ChargeIncoming, Job
@@ -48,7 +48,9 @@ async def test_message_consume(
         with open("./data.json") as f:
             charges = sorted(json.load(f), key=itemgetter("claim_id"))
 
-            settings.incoming_queue.put(
+            manager = multiprocessing.Manager()
+            batch_queue = manager.Queue()
+            batch_queue.put(
                 {
                     "job": Job(job["job_id"], bool(job["is_done"])),
                     "data": [
@@ -63,7 +65,9 @@ async def test_message_consume(
                 }
             )
 
-        task = asyncio.create_task(message_consume(connection, get_logger(__name__)))
+        task = asyncio.create_task(
+            message_consume(connection, batch_queue, get_logger(__name__))
+        )
 
         await asyncio.sleep(1)
         task.cancel()

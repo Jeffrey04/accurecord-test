@@ -1,18 +1,31 @@
 import asyncio
 from collections.abc import Sequence
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from queue import Queue
 from threading import Event
 from typing import Any, Self
 
 import aiosqlite
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from starlette import status
 
 from accurecord_test import database, settings
 from accurecord_test.common import get_logger, get_web_logger
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if not hasattr(app.state, "batch_queue") and isinstance(
+        app.state.batch_queue, Queue
+    ):
+        raise RuntimeError("Batch queue is missing")
+
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @dataclass
@@ -48,6 +61,7 @@ class Job:
 
 @app.post("/charges/batch")
 async def claim_submit(
+    request: Request,
     charges: list[ChargeIncoming],
     conn: aiosqlite.Connection = Depends(database.web_connect),
     logger: Any = Depends(get_web_logger(__name__)),
@@ -69,7 +83,9 @@ async def claim_submit(
 
     await conn.commit()
 
-    await asyncio.to_thread(settings.incoming_queue.put, {"job": job, "data": charges})
+    await asyncio.to_thread(
+        request.app.state.batch_queue.put, {"job": job, "data": charges}
+    )
 
     return job  # type: ignore
 
@@ -126,10 +142,14 @@ async def claim_get(
             )
 
 
-async def run(exit_event: Event, logger=get_logger(__name__)) -> None:
+async def run(
+    exit_event: Event, batch_queue: Queue, logger=get_logger(__name__)
+) -> None:
+    app.state.batch_queue = batch_queue
+
     server = uvicorn.Server(
         uvicorn.Config(
-            "accurecord_test.web:app",
+            app,
             host="0.0.0.0",
             port=settings.WEB_PORT,
             log_level="info",

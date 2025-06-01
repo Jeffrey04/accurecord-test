@@ -1,11 +1,11 @@
 import json
+import multiprocessing
 
 import aiosqlite
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 
-from accurecord_test import settings
 from accurecord_test.database import web_connect
 from accurecord_test.web import app
 
@@ -33,6 +33,7 @@ def client_fixture(connection: aiosqlite.Connection):
         yield connection
 
     app.dependency_overrides[web_connect] = _db
+    app.state.batch_queue = multiprocessing.Manager().Queue()
 
     with TestClient(app) as client:
         yield client
@@ -67,7 +68,7 @@ async def test_create_job(
     assert result[1] == data["is_done"]
 
     # check if the job is sent to the queue
-    payload = settings.incoming_queue.get()
+    payload = client.app.state.batch_queue.get() # type: ignore
 
     assert data["job_id"] == payload["job"].job_id
     assert data["is_done"] == payload["job"].is_done
